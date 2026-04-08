@@ -26,6 +26,6 @@ public class ApiService
             var result = JsonConvert.DeserializeObject<dynamic>(content);
             return result?.token;
         }
-        return null;
+        return null; //
     }
 }

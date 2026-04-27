@@ -614,8 +614,75 @@
         </div>
     </div>
 
-    <script>// дополним
+    <script>
 
+        // находим все нужные элементы на сайте
+        const authBlock = document.getElementById('authBlock');
+        const mainBlock = document.getElementById('mainBlock');
+        const authSubmitBtn = document.getElementById('authSubmitBtn');
+        const authError = document.getElementById('authError');
+
+        const API_URL = window.location.origin + '/api';
+
+
+        // функция входа
+        authSubmitBtn.onclick = async () => {
+            const username = document.getElementById('authUsername').value;
+            сonst password = document.getElementById('authPassword').value;
+
+
+            // очистка прошлых ошибок
+            authError.innerText = "";
+
+
+            // отправляем запрос на сервер
+            try {
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+
+                    // сохраняем токен в память браузера, чтобы все время не логиниться 
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('username', username);
+
+                    // переходим на главную страницу, показываем задачи
+                    showMainPage();
+                } else {
+                    authError.innerText = "Неверный логин или пароль";
+                }
+            } catch (error) {
+                authError.innerText = "Ошибка: Сервер не отвечает";
+                console.error(error);
+            }
+        }
+
+        // функционал переключения интрефейса
+        function showMainPage() {
+            authBlock.style.display = 'none';
+            mainBlock.style.display = 'block';
+            document.getElementById('userBadge').innerText = `👤 ${localStorage.getItem('username')}`;
+
+            // дополним
+
+            console.log("Вход выполнен успешно!");
+        }
+
+        // это проверка, если мы уже входили в аккаунт, то у нас сразу показываются задачи
+        if (localStorage.getItem('token')) {
+            showMainPage();
+        }
+
+        // кнопка выхода
+        document.getElementById('logoutBtn').onclick = () => {
+            localStorage.clear();
+            location.reload(); // перезагружаем страницу
+
+        };
 
     </script>
 

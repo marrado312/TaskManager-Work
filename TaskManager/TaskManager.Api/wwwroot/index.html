@@ -1,0 +1,623 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Manager</title>
+    <style>
+        #taskmanager-root {
+            width: 100% !important;
+            max-width: 1100px !important;
+            margin: 0 auto !important;
+            padding: 24px 16px !important;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif !important;
+            display: block !important;
+            background: #f8f9fb !important;
+            min-height: 100vh !important;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Шапка */
+        .tm-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .tm-header-left h1 {
+            font-size: 26px;
+            font-weight: 700;
+            color: #1a1a2e;
+            letter-spacing: -0.5px;
+        }
+
+        .tm-header-left .tm-subtitle {
+            font-size: 13px;
+            color: #999;
+            margin-top: 2px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .tm-header-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .tm-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #4f6ef7;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .tm-logout {
+            background: transparent;
+            border: 1.5px solid #e0e0e0;
+            color: #888;
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-size: 13px;
+            cursor: pointer;
+            font-weight: 500;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+
+            .tm-logout:hover {
+                background: #fee;
+                border-color: #e05555;
+                color: #e05555;
+            }
+
+        /* Форма добавления */
+        .tm-add-card {
+            background: white;
+            border-radius: 18px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+        }
+
+            .tm-add-card h2 {
+                font-size: 18px;
+                font-weight: 600;
+                color: #1a1a2e;
+                margin-bottom: 20px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+        .tm-form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .tm-form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+            .tm-form-group.full {
+                grid-column: 1 / -1;
+            }
+
+            .tm-form-group label {
+                display: block;
+                font-size: 12px;
+                font-weight: 600;
+                color: #aaa;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                margin-bottom: 8px;
+            }
+
+        .tm-input, .tm-select {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #f0f0f0;
+            border-radius: 12px;
+            font-size: 15px;
+            outline: none;
+            font-family: inherit;
+            background: #fafafa;
+            transition: all 0.2s;
+            color: #333;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+            .tm-input:focus, .tm-select:focus {
+                border-color: #4f6ef7;
+                background: white;
+                box-shadow: 0 0 0 4px rgba(79,110,247,0.06);
+            }
+
+        .tm-textarea {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #f0f0f0;
+            border-radius: 12px;
+            font-size: 15px;
+            outline: none;
+            font-family: inherit;
+            background: #fafafa;
+            resize: vertical;
+            min-height: 90px;
+            transition: all 0.2s;
+        }
+
+            .tm-textarea:focus {
+                border-color: #4f6ef7;
+                background: white;
+                box-shadow: 0 0 0 4px rgba(79,110,247,0.06);
+            }
+
+        .tm-btn-primary {
+            padding: 14px 28px;
+            background: #1a1a2e;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+        }
+
+            .tm-btn-primary:hover {
+                background: #2d2d44;
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            }
+
+        .tm-btn-secondary {
+            padding: 14px 28px;
+            background: transparent;
+            border: 2px solid #e0e0e0;
+            color: #888;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s;
+            width: 100%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+            .tm-btn-secondary:hover {
+                background: #f5f5f5;
+            }
+
+        .tm-form-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        /* Поиск задач */
+        .tm-search-bar {
+            display: flex;
+            align-items: center;
+            background: white;
+            border-radius: 14px;
+            padding: 12px 20px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+            gap: 10px;
+        }
+
+            .tm-search-bar input {
+                border: none;
+                outline: none;
+                width: 100%;
+                font-size: 15px;
+                font-family: inherit;
+                color: #333;
+            }
+
+                .tm-search-bar input::placeholder {
+                    color: #ccc;
+                }
+
+        /* Колонки */
+        .tm-board {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            width: 100%;
+        }
+
+        .tm-column {
+            min-width: 0;
+        }
+
+        .tm-column-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            padding-bottom: 14px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .tm-column-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #1a1a2e;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .tm-column-count {
+            background: #f0f2f5;
+            padding: 5px 12px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #888;
+        }
+
+        .tm-task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        /* Карточка задачи */
+        .tm-task {
+            background: white;
+            border-radius: 16px;
+            padding: 18px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+            transition: all 0.2s;
+            cursor: default;
+            border: 2px solid transparent;
+        }
+
+            .tm-task:hover {
+                box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+                border-color: #e8ecff;
+            }
+
+            .tm-task.done {
+                opacity: 0.7;
+                background: #f9fafb;
+            }
+
+        .tm-task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+            gap: 10px;
+        }
+
+        .tm-task-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #1a1a2e;
+            line-height: 1.4;
+            flex: 1;
+            word-break: break-word;
+        }
+
+        .tm-task.done .tm-task-title {
+            text-decoration: line-through;
+            color: #bbb;
+        }
+
+        .tm-priority-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            margin-top: 6px;
+        }
+
+            .tm-priority-dot.high {
+                background: #e05555;
+            }
+
+            .tm-priority-dot.medium {
+                background: #f0a500;
+            }
+
+            .tm-priority-dot.low {
+                background: #4f6ef7;
+            }
+
+        .tm-task-desc {
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 14px;
+            line-height: 1.5;
+            word-break: break-word;
+        }
+
+        .tm-task.done .tm-task-desc {
+            text-decoration: line-through;
+            color: #ccc;
+        }
+
+        .tm-task-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        .tm-task-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 5px 10px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+            .tm-task-tag.deadline {
+                background: #fff5f5;
+                color: #c0392b;
+            }
+
+                .tm-task-tag.deadline.overdue {
+                    background: #ffe8e8;
+                    animation: pulse 2s infinite;
+                }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.7;
+            }
+        }
+
+        .tm-task-tag.time {
+            background: #f0f4ff;
+            color: #4f6ef7;
+        }
+
+        .tm-task-tag.date {
+            background: #f5f5f5;
+            color: #888;
+        }
+
+        .tm-task-actions {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .tm-task-btn {
+            padding: 7px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            font-family: inherit;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+            .tm-task-btn.complete {
+                background: #e8f5e9;
+                color: #2e7d32;
+            }
+
+                .tm-task-btn.complete:hover {
+                    background: #c8e6c9;
+                }
+
+            .tm-task-btn.undo {
+                background: #fff3e0;
+                color: #e65100;
+            }
+
+                .tm-task-btn.undo:hover {
+                    background: #ffe0b2;
+                }
+
+            .tm-task-btn.edit {
+                background: #f0f2f5;
+                color: #555;
+            }
+
+                .tm-task-btn.edit:hover {
+                    background: #e0e4ea;
+                }
+
+            .tm-task-btn.delete {
+                background: #fce4e4;
+                color: #c0392b;
+            }
+
+                .tm-task-btn.delete:hover {
+                    background: #f8d0d0;
+                }
+
+        .tm-empty {
+            text-align: center;
+            color: #ccc;
+            padding: 50px 16px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        /* Для телефона */
+        @media (max-width: 768px) {
+            .tm-board {
+                grid-template-columns: 1fr;
+            }
+
+            .tm-form-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            .tm-form-actions {
+                grid-template-columns: 1fr;
+            }
+
+            .tm-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .tm-add-card {
+                padding: 18px;
+            }
+
+            .tm-task {
+                padding: 14px;
+            }
+
+            .tm-task-title {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="taskmanager-root">
+
+        <div id="authBlock" style="max-width:400px; margin:40px auto;">
+            <div style="text-align:center; margin-bottom:28px;">
+                <div style="font-size:48px; margin-bottom:12px;">📋</div>
+                <h1 style="font-size:26px; font-weight:700; color:#1a1a2e;" id="authTitle">Вход</h1>
+                <p style="color:#999; margin-top:6px; font-size:14px;" id="authSubtitle">Войдите в аккаунт чтобы продолжить</p>
+            </div>
+            <div style="background:white; border-radius:18px; padding:28px; box-shadow:0 2px 12px rgba(0,0,0,0.04);">
+                <input class="tm-input" type="text" id="authUsername" placeholder="Логин" autocomplete="username" style="margin-bottom:12px;" />
+                <input class="tm-input" type="password" id="authPassword" placeholder="Пароль" autocomplete="current-password" style="margin-bottom:16px;" />
+                <div style="color:#e05555; font-size:13px; min-height:18px; margin-bottom:8px; text-align:center;" id="authError"></div>
+                <button class="tm-btn-primary" id="authSubmitBtn" style="justify-content:center;">Войти</button>
+                <button style="background:none; border:none; color:#4f6ef7; font-size:14px; cursor:pointer; width:100%; margin-top:14px; text-align:center; font-family:inherit;" id="authSwitchBtn">Нет аккаунта? Зарегистрироваться</button>
+            </div>
+        </div>
+
+        <div id="mainBlock" style="display:none;">
+            <div class="tm-header">
+                <div class="tm-header-left">
+                    <h1>📋 Task Manager</h1>
+                    <div class="tm-subtitle">
+                        <span id="counter">0 всего · 0 завершено</span>
+                    </div>
+                </div>
+                <div class="tm-header-right">
+                    <span style="font-weight:600; font-size:14px; color:#555;" id="userBadge">👤 Гость</span>
+                    <button class="tm-logout" id="logoutBtn">Выйти</button>
+                </div>
+            </div>
+
+            <div class="tm-add-card">
+                <h2>➕ Новая задача</h2>
+                <div class="tm-form-grid">
+                    <div class="tm-form-group full">
+                        <label>Название</label>
+                        <input class="tm-input" type="text" id="titleInput" placeholder="Что нужно сделать?" />
+                    </div>
+                    <div class="tm-form-group">
+                        <label>Приоритет</label>
+                        <select class="tm-select" id="priorityInput">
+                            <option value="low">Обычный</option>
+                            <option value="medium" selected>Средний</option>
+                            <option value="high">Высокий</option>
+                        </select>
+                    </div>
+                    <div class="tm-form-group">
+                        <label>Срок выполнения</label>
+                        <input class="tm-input" type="datetime-local" id="deadlineInput" />
+                    </div>
+                    <div class="tm-form-group">
+                        <label>Оценка времени</label>
+                        <select class="tm-select" id="estTimeInput">
+                            <option value="">Не указано</option>
+                            <option value="15">15 мин</option>
+                            <option value="30">30 мин</option>
+                            <option value="60">1 час</option>
+                            <option value="120">2 часа</option>
+                            <option value="240">4 часа</option>
+                        </select>
+                    </div>
+                    <div class="tm-form-group full">
+                        <label>Описание</label>
+                        <textarea class="tm-textarea" id="textInput" placeholder="Добавить описание..."></textarea>
+                    </div>
+                </div>
+                <div class="tm-form-actions">
+                    <button class="tm-btn-primary" id="addBtn">Создать задачу</button>
+                    <button class="tm-btn-secondary" id="clearFormBtn">Очистить</button>
+                </div>
+            </div>
+
+            <div class="tm-search-bar">
+                <span style="color:#aaa;">🔍</span>
+                <input type="text" id="searchInput" placeholder="Поиск задач..." />
+            </div>
+
+            <div class="tm-board">
+                <div class="tm-column">
+                    <div class="tm-column-header">
+                        <div class="tm-column-title">📝 В работе</div>
+                        <span class="tm-column-count" id="activeCount">0</span>
+                    </div>
+                    <div class="tm-task-list" id="activeTasks"></div>
+                </div>
+                <div class="tm-column">
+                    <div class="tm-column-header">
+                        <div class="tm-column-title">✅ Выполнено</div>
+                        <span class="tm-column-count" id="doneCount">0</span>
+                    </div>
+                    <div class="tm-task-list" id="doneTasks"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>// дополним
+
+
+    </script>
+
+</body>
+</html>

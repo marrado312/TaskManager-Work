@@ -25,10 +25,11 @@ public class AuthController : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] User user)
     {
-        if (await _context.Users.AnyAsync(u => u.Email == user.Email))
-            return BadRequest("Пользователь с таким Email уже существует");
+        
+        if (await _context.Users.AnyAsync(u => u.Username == user.Username))
+            return BadRequest("Пользователь с таким логином уже существует");
 
-   
+        
         user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(user.PasswordHash);
         user.CreatedAt = DateTime.UtcNow;
 
@@ -41,7 +42,8 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginModel login)
     {
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == login.Email);
+       
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == login.Username);
 
         if (user == null || !BCrypt.Net.BCrypt.Verify(login.Password, user.PasswordHash))
             return Unauthorized("Неверный логин или пароль");
@@ -58,7 +60,7 @@ public class AuthController : ControllerBase
         var claims = new[]
         {
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new Claim(ClaimTypes.Email, user.Email),
+            new Claim(ClaimTypes.Name, user.Username), 
             new Claim(ClaimTypes.Role, user.Role)
         };
 
@@ -73,8 +75,9 @@ public class AuthController : ControllerBase
     }
 }
 
+
 public class LoginModel
 {
-    public string Email { get; set; } = "";
+    public string Username { get; set; } = "";
     public string Password { get; set; } = "";
 }

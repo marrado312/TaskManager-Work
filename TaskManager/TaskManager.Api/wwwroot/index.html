@@ -527,10 +527,12 @@
                 <p style="color:#999; margin-top:6px; font-size:14px;" id="authSubtitle">Войдите в аккаунт чтобы продолжить</p>
             </div>
             <div style="background:white; border-radius:18px; padding:28px; box-shadow:0 2px 12px rgba(0,0,0,0.04);">
-                <input class="tm-input" type="text" id="authUsername" placeholder="Логин" autocomplete="username" style="margin-bottom:12px;" />
-                <input class="tm-input" type="password" id="authPassword" placeholder="Пароль" autocomplete="current-password" style="margin-bottom:16px;" />
+                <input class="tm-input" type="text" id="username" placeholder="Логин" style="margin-bottom:12px;" />
+                <input class="tm-input" type="password" id="password" placeholder="Пароль" style="margin-bottom:16px;" />
                 <div style="color:#e05555; font-size:13px; min-height:18px; margin-bottom:8px; text-align:center;" id="authError"></div>
+
                 <button class="tm-btn-primary" id="authSubmitBtn" style="justify-content:center;">Войти</button>
+
                 <button style="background:none; border:none; color:#4f6ef7; font-size:14px; cursor:pointer; width:100%; margin-top:14px; text-align:center; font-family:inherit;" id="authSwitchBtn">Нет аккаунта? Зарегистрироваться</button>
             </div>
         </div>
@@ -615,75 +617,81 @@
     </div>
 
     <script>
-
-        // находим все нужные элементы на сайте
         const authBlock = document.getElementById('authBlock');
         const mainBlock = document.getElementById('mainBlock');
+        const authTitle = document.getElementById('authTitle');
         const authSubmitBtn = document.getElementById('authSubmitBtn');
+        const authSwitchBtn = document.getElementById('authSwitchBtn');
         const authError = document.getElementById('authError');
 
-        const API_URL = window.location.origin + '/api';
 
+        let isLoginMode = true; // переключатель / вход или регистрация
+        const API_URL = 'https://localhost:7176/api';
 
-        // функция входа
+        // Клик по "Зарегистрироваться / Войти"
+        authSwitchBtn.onclick = () => {
+            isLoginMode = !isLoginMode;
+            authTitle.innerText = isLoginMode ? "Вход" : "Регистрация";
+            authSubmitBtn.innerText = isLoginMode ? "Войти" : "Создать аккаунт";
+            authSwitchBtn.innerText = isLoginMode ? "Нет аккаунта? Зарегистрироваться" : "Уже есть аккаунт? Войти";
+            authError.innerText = "";
+        };
+
+        //  функция для входа и регистрации
         authSubmitBtn.onclick = async () => {
-            const username = document.getElementById('authUsername').value;
-            сonst password = document.getElementById('authPassword').value;
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const endpoint = isLoginMode ? '/auth/login' : '/auth/register';
 
-
-            // очистка прошлых ошибок
             authError.innerText = "";
 
+            // Подготовка данных под твой новый AuthController
+            const payload = isLoginMode
+                ? { username, password }
+                : { username, passwordHash: password, fullName: username, role: "User" };
 
-            // отправляем запрос на сервер
             try {
-                const response = await fetch(`${API_URL}/auth/login`, {
+                const response = await fetch(API_URL + endpoint, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password })
+                    body: JSON.stringify(payload)
                 });
 
                 if (response.ok) {
-                    const data = await response.json();
-
-                    // сохраняем токен в память браузера, чтобы все время не логиниться 
-                    localStorage.setItem('token', data.token);
-                    localStorage.setItem('username', username);
-
-                    // переходим на главную страницу, показываем задачи
-                    showMainPage();
+                    if (isLoginMode) {
+                        const data = await response.json();
+                        localStorage.setItem('token', data.token);
+                        localStorage.setItem('username', username);
+                        showMainPage();
+                    } else {
+                        alert("Регистрация успешна! Теперь войдите.");
+                        isLoginMode = true;
+                        authSwitchBtn.click(); // переключаем на вход
+                    }
                 } else {
-                    authError.innerText = "Неверный логин или пароль";
+                    const errorText = await response.text();
+                    authError.innerText = errorText || (isLoginMode ? "Неверный логин или пароль" : "Ошибка регистрации");
                 }
             } catch (error) {
-                authError.innerText = "Ошибка: Сервер не отвечает";
-                console.error(error);
+                authError.innerText = "Сервер не отвечает";
             }
-        }
+        };
 
-        // функционал переключения интрефейса
         function showMainPage() {
             authBlock.style.display = 'none';
             mainBlock.style.display = 'block';
             document.getElementById('userBadge').innerText = `👤 ${localStorage.getItem('username')}`;
-
-            // дополним
-
-            console.log("Вход выполнен успешно!");
+            console.log("Доступ разрешен");
         }
 
-        // это проверка, если мы уже входили в аккаунт, то у нас сразу показываются задачи
         if (localStorage.getItem('token')) {
             showMainPage();
         }
 
-        // кнопка выхода
         document.getElementById('logoutBtn').onclick = () => {
             localStorage.clear();
-            location.reload(); // перезагружаем страницу
-
+            location.reload();
         };
-
     </script>
 
 </body>

@@ -8,12 +8,9 @@ public class TaskItem
     public bool IsCompleted { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? Deadline { get; set; }
-
     public int Priority { get; set; }
-
+    public int? EstimatedTime { get; set; }
     public int UserId { get; set; }
     public User? User { get; set; }
-
-
     public string? FilePath { get; set; }
 }

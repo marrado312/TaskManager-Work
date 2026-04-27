@@ -623,7 +623,7 @@
         const authSubmitBtn = document.getElementById('authSubmitBtn');
         const authSwitchBtn = document.getElementById('authSwitchBtn');
         const authError = document.getElementById('authError');
-
+        const addBtn = document.getElementById('addBtn');
 
         let isLoginMode = true; // переключатель / вход или регистрация
         const API_URL = 'https://localhost:7176/api';
@@ -637,15 +637,13 @@
             authError.innerText = "";
         };
 
-        //  функция для входа и регистрации
+        // функция для входа и регистрации
         authSubmitBtn.onclick = async () => {
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
             const endpoint = isLoginMode ? '/auth/login' : '/auth/register';
-
             authError.innerText = "";
 
-            // Подготовка данных под твой новый AuthController
             const payload = isLoginMode
                 ? { username, password }
                 : { username, passwordHash: password, fullName: username, role: "User" };
@@ -666,22 +664,114 @@
                     } else {
                         alert("Регистрация успешна! Теперь войдите.");
                         isLoginMode = true;
-                        authSwitchBtn.click(); // переключаем на вход
+                        authSwitchBtn.click();
                     }
                 } else {
                     const errorText = await response.text();
-                    authError.innerText = errorText || (isLoginMode ? "Неверный логин или пароль" : "Ошибка регистрации");
+                    authError.innerText = errorText || "Ошибка доступа";
                 }
             } catch (error) {
                 authError.innerText = "Сервер не отвечает";
             }
         };
 
+        async function loadTasks() {
+            const token = localStorage.getItem('token');
+            const response = await fetch(API_URL + '/tasks', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (response.ok) {
+                const tasks = await response.json();
+                renderTasks(tasks);
+            }
+        }
+
+        addBtn.onclick = async () => {
+            const title = document.getElementById('titleInput').value;
+            const description = document.getElementById('textInput').value;
+            const priorityStr = document.getElementById('priorityInput').value;
+            const deadline = document.getElementById('deadlineInput').value;
+            const estTime = document.getElementById('estTimeInput').value;
+
+            if (!title) return alert("Введите название!");
+
+            const priorityMap = { 'low': 0, 'medium': 1, 'high': 2 };
+            const token = localStorage.getItem('token');
+
+            const taskData = {
+                title: title,
+                description: description,
+                priority: priorityMap[priorityStr],
+                deadline: deadline ? new Date(deadline).toISOString() : null,
+                estimatedTime: estTime ? parseInt(estTime) : null,
+                isCompleted: false
+            };
+
+            const response = await fetch(API_URL + '/tasks', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(taskData)
+            });
+
+            if (response.ok) {
+                document.getElementById('titleInput').value = "";
+                document.getElementById('textInput').value = "";
+                loadTasks();
+            }
+        };
+
+        function renderTasks(tasks) {
+            const activeTasks = document.getElementById('activeTasks');
+            const doneTasks = document.getElementById('doneTasks');
+            activeTasks.innerHTML = "";
+            doneTasks.innerHTML = "";
+
+            tasks.forEach(task => {
+                const html = `
+                    <div class="tm-task ${task.isCompleted ? 'done' : ''}">
+                        <div class="tm-task-title">${task.title}</div>
+                        <div class="tm-task-desc">${task.description || ''}</div>
+                        <div class="tm-task-actions">
+                            <button class="tm-task-btn complete" onclick="toggleTask(${task.id})">${task.isCompleted ? 'Вернуть' : 'Готово'}</button>
+                            <button class="tm-task-btn delete" onclick="deleteTask(${task.id})">Удалить</button>
+                        </div>
+                    </div>`;
+                if (task.isCompleted) doneTasks.innerHTML += html;
+                else activeTasks.innerHTML += html;
+            });
+
+            document.getElementById('activeCount').innerText = tasks.filter(t => !t.isCompleted).length;
+            document.getElementById('doneCount').innerText = tasks.filter(t => t.isCompleted).length;
+            document.getElementById('counter').innerText = `${tasks.length} всего · ${tasks.filter(t => t.isCompleted).length} завершено`;
+        }
+
+        async function toggleTask(id) {
+            const token = localStorage.getItem('token');
+            await fetch(`${API_URL}/tasks/${id}/toggle`, {
+                method: 'HttpPut',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            loadTasks();
+        }
+
+        async function deleteTask(id) {
+            if (!confirm("Удалить?")) return;
+            const token = localStorage.getItem('token');
+            await fetch(`${API_URL}/tasks/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            loadTasks();
+        }
+
         function showMainPage() {
             authBlock.style.display = 'none';
             mainBlock.style.display = 'block';
             document.getElementById('userBadge').innerText = `👤 ${localStorage.getItem('username')}`;
-            console.log("Доступ разрешен");
+            loadTasks();
         }
 
         if (localStorage.getItem('token')) {

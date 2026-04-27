@@ -9,7 +9,7 @@ namespace TaskManager.Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-[Authorize] 
+[Authorize]
 public class TasksController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
@@ -19,7 +19,6 @@ public class TasksController : ControllerBase
         _context = context;
     }
 
-    
     [HttpGet]
     public async Task<ActionResult<IEnumerable<TaskItem>>> GetTasks()
     {
@@ -27,7 +26,6 @@ public class TasksController : ControllerBase
         return await _context.Tasks.Where(t => t.UserId == userId).ToListAsync();
     }
 
-    
     [HttpPost]
     public async Task<ActionResult<TaskItem>> CreateTask(TaskItem task)
     {
@@ -39,5 +37,29 @@ public class TasksController : ControllerBase
         await _context.SaveChangesAsync();
 
         return CreatedAtAction(nameof(GetTasks), new { id = task.Id }, task);
+    }
+
+    [HttpPut("{id}/toggle")]
+    public async Task<IActionResult> ToggleTask(int id)
+    {
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value!);
+        var task = await _context.Tasks.FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId);
+        if (task == null) return NotFound();
+
+        task.IsCompleted = !task.IsCompleted;
+        await _context.SaveChangesAsync();
+        return Ok(task);
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteTask(int id)
+    {
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value!);
+        var task = await _context.Tasks.FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId);
+        if (task == null) return NotFound();
+
+        _context.Tasks.Remove(task);
+        await _context.SaveChangesAsync();
+        return NoContent();
     }
 }

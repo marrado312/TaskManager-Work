@@ -44,6 +44,7 @@ public class TasksController : ControllerBase
     {
         var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value!);
         var task = await _context.Tasks.FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId);
+
         if (task == null) return NotFound();
 
         task.IsCompleted = !task.IsCompleted;
@@ -56,6 +57,7 @@ public class TasksController : ControllerBase
     {
         var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value!);
         var task = await _context.Tasks.FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId);
+
         if (task == null) return NotFound();
 
         _context.Tasks.Remove(task);
